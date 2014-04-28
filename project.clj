@@ -8,6 +8,8 @@
                  [org.clojure/java.jdbc "0.3.2"]
                  [postgresql "9.1-901.jdbc4"]
                  [http-kit "2.1.18"]
-                 [meridian/clj-jts "0.0.2"]
+                 [ring "1.2.1"]
+                 [compojure "1.1.6"]
+                 [quil "1.7.0"]
                  [com.vividsolutions/jts "1.11"]]
   :main clo-tiler.core)
