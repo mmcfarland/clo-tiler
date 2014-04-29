@@ -25,7 +25,9 @@
       
 (defn tile-handler [table x y z]
   "Return an image response for a TMS request"
-  (render/render-tile table (tile-to-envelope x y z)))
+  {:status 200
+    :headers {"Content-Type" "image/png"}
+    :body (render/render-tile table (tile-to-envelope x y z))})
 
 (defroutes routes
   (GET "/" [] (str "ghost mouse")) ;; it's working

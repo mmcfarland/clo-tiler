@@ -1,16 +1,20 @@
 (ns clo-tiler.render
-  (:require [quil.core :refer :all]
-            [clojure.java.jdbc :as sql])
-  (:import (com.vividsolutions.jts.geom Envelope Point Coordinate)))
+  (:require [clojure.java.jdbc :as sql])
+  (:import (com.vividsolutions.jts.geom Envelope Point Coordinate)
+           (java.awt.image BufferedImage)
+           (java.io ByteArrayOutputStream ByteArrayInputStream)
+           (java.awt Color)
+           (javax.imageio ImageIO)))
+  
 
 (def conn "postgresql://localhost:5432/tyler")
 (def w 256)
 (def h 256)
 
-(defn buffer [envelope px] 
+(defn buffer-amt [envelope px] 
   (* px ( / (.getWidth envelope) w)))
 
-(defn make-buffer-sql [env buff] 
+(defn make-buffer-sql [buff env] 
   "Buffer envelope sql clause. Assumemes webm srid"
   (format "ST_Buffer(ST_MakeEnvelope(%f,%f,%f,%f, 3857), %s)"
     (.getMinX env) (.getMinY env) (.getMaxX env) (.getMaxY env) buff))
@@ -25,9 +29,21 @@
    of :envelope buffered by :buff pixels"
   (into [] 
       (sql/query conn [(->
-         (make-buffer-sql envelope buff)
+         (buffer-amt envelope buff)
+         (make-buffer-sql envelope)
          (make-spatial-query table))])))
+
+(defn make-image [] 
+  (let [img (BufferedImage. w h BufferedImage/TYPE_INT_ARGB)
+        baos (ByteArrayOutputStream.)]
+    (doto (.getGraphics img)
+      (.setColor Color/BLUE)
+      (.fillRect 0 0 100 100))
+    (ImageIO/write img "png" baos)
+    (ByteArrayInputStream. (.toByteArray baos))))
 
 (defn render-tile [table envelope]
   "Return an image for all features of :table in the bounds of envelope"
-  (str (count (get-tile-features table envelope 10)))) ;;TODO: Symbology width buffer
+  (make-image))
+  ;;(str (count (get-tile-features table envelope 10)))) 
+
